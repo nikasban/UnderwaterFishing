@@ -5644,7 +5644,7 @@ MonoBehaviour:
   upgradeBaseCosts: 6400000078000000640000006400000082000000i
   upgradeLevels: 0000000000000000000000000000000000000000i
   harpoonRangePerLevel: 2
-  viewSizePerLevel: 0.8
+  viewSizePerLevel: 1.5
   oxygenPerLevel: 12
   bagCapacityPerLevel: 2.5
   armorReductionPerLevel: 0.1
