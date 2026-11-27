@@ -44,6 +44,8 @@ public class ExitWaterButton : MonoBehaviour
             }
 
             player.oxygen = player.maxoxygen;
+            if (GameManager.Instance != null)
+                GameManager.Instance.SaveGame();
         });
     }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -48,7 +50,24 @@ public class GameManager : MonoBehaviour
     private List<int> inventorySellPrices = new List<int>();
 
     public int InventoryVersion { get; private set; }
+    [Header("Save System")]
+    [SerializeField] private List<FishType> fishCatalog = new List<FishType>();
 
+    private const string SaveFileName = "game_save.json";
+
+    private string SaveFilePath =>
+        Path.Combine(Application.persistentDataPath, SaveFileName);
+
+    [Serializable]
+    private class SaveData
+    {
+        public int coins;
+        public int[] upgradeLevels;
+
+        public List<string> fishNames = new List<string>();
+        public List<float> inventoryWeights = new List<float>();
+        public List<int> inventorySellPrices = new List<int>();
+    }
     public float CurrentMaxWeight =>
         Mathf.Max(0f, maxWeight +
         GetUpgradeLevel(UpgradeType.BagCapacity) * bagCapacityPerLevel);
@@ -88,6 +107,10 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         EnsureUpgradeArray();
+        EnsureInventoryData();
+
+        LoadGame();
+
         EnsureInventoryData();
     }
 
@@ -167,6 +190,8 @@ public class GameManager : MonoBehaviour
         if (player != null)
             player.ApplyUpgradeStats();
 
+        SaveGame();
+
         return true;
     }
 
@@ -182,7 +207,7 @@ public class GameManager : MonoBehaviour
 
         float averageWeight = Mathf.Max(0.01f, type.weight);
 
-        float randomWeight = Random.Range(
+        float randomWeight = UnityEngine.Random.Range(
             averageWeight * 0.75f,
             averageWeight * 1.25f
         );
@@ -253,8 +278,7 @@ public class GameManager : MonoBehaviour
         if (inventory.Count == 0)
             return;
 
-        int index = Random.Range(0, inventory.Count);
-
+        int index = UnityEngine.Random.Range(0, inventory.Count);
         RemoveInventoryAt(index);
 
         InventoryVersion++;
@@ -281,6 +305,8 @@ public class GameManager : MonoBehaviour
             inventorySellPrices.Clear();
 
             InventoryVersion++;
+
+            SaveGame();
         }
 
         return total;
@@ -375,6 +401,144 @@ public class GameManager : MonoBehaviour
             return 0;
 
         return inventorySellPrices[index];
+    }
+    public void SaveGame()
+    {
+        EnsureUpgradeArray();
+        EnsureInventoryData();
+
+        SaveData data = new SaveData();
+
+        data.coins = coins;
+        data.upgradeLevels = (int[])upgradeLevels.Clone();
+
+        for (int i = 0; i < inventory.Count; i++)
+        {
+            FishType fish = inventory[i];
+
+            if (fish == null)
+            {
+                Debug.LogError(
+                    "GameManager: невозможно сохранить пустую ссылку на рыбу!"
+                );
+                return;
+            }
+
+            if (fishCatalog == null || !fishCatalog.Contains(fish))
+            {
+                Debug.LogError(
+                    "GameManager: рыба " + fish.name +
+                    " отсутствует в Fish Catalog. Сохранение прервано!"
+                );
+                return;
+            }
+
+            data.fishNames.Add(fish.name);
+            data.inventoryWeights.Add(inventoryWeights[i]);
+            data.inventorySellPrices.Add(inventorySellPrices[i]);
+        }
+
+        try
+        {
+            Directory.CreateDirectory(Application.persistentDataPath);
+
+            string json = JsonUtility.ToJson(data, true);
+
+            File.WriteAllText(SaveFilePath, json);
+
+            Debug.Log("Игра успешно сохранена!");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Ошибка сохранения игры: " + e.Message);
+        }
+    }
+
+    void LoadGame()
+    {
+        if (!File.Exists(SaveFilePath))
+        {
+            Debug.Log("Сохранение не найдено. Начинаем новую игру.");
+            return;
+        }
+
+        try
+        {
+            string json = File.ReadAllText(SaveFilePath);
+
+            SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+            if (data == null)
+                return;
+
+            coins = Mathf.Max(0, data.coins);
+
+            if (data.upgradeLevels != null)
+            {
+                for (int i = 0;
+                     i < Mathf.Min(data.upgradeLevels.Length, upgradeLevels.Length);
+                     i++)
+                {
+                    upgradeLevels[i] = Mathf.Clamp(
+                        data.upgradeLevels[i],
+                        0,
+                        maxUpgradeLevel
+                    );
+                }
+            }
+
+            inventory.Clear();
+            inventoryWeights.Clear();
+            inventorySellPrices.Clear();
+
+            if (data.fishNames != null &&
+                data.inventoryWeights != null &&
+                data.inventorySellPrices != null)
+            {
+                int count = Mathf.Min(
+                    data.fishNames.Count,
+                    Mathf.Min(
+                        data.inventoryWeights.Count,
+                        data.inventorySellPrices.Count
+                    )
+                );
+
+                for (int i = 0; i < count; i++)
+                {
+                    FishType fish = fishCatalog.Find(
+                        f => f != null && f.name == data.fishNames[i]
+                    );
+
+                    if (fish == null)
+                    {
+                        Debug.LogWarning(
+                            "Не удалось восстановить рыбу: " +
+                            data.fishNames[i]
+                        );
+
+                        continue;
+                    }
+
+                    inventory.Add(fish);
+
+                    inventoryWeights.Add(
+                        Mathf.Max(0f, data.inventoryWeights[i])
+                    );
+
+                    inventorySellPrices.Add(
+                        Mathf.Max(0, data.inventorySellPrices[i])
+                    );
+                }
+            }
+
+            InventoryVersion++;
+
+            Debug.Log("Сохранение успешно загружено!");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Ошибка загрузки сохранения: " + e.Message);
+        }
     }
     public int InventoryCount => inventory.Count;
 }

@@ -122,6 +122,7 @@ public class Harpoon : MonoBehaviour
 
     void Update()
     {
+        Debug.Log("TimeScale: " + Time.timeScale);
         if (player == null)
         {
             FindPlayer();
@@ -153,6 +154,7 @@ public class Harpoon : MonoBehaviour
             if (EventSystem.current != null &&
                 EventSystem.current.IsPointerOverGameObject())
             {
+                Debug.Log("Harpoon: нажатие перехвачено интерфейсом!");
                 return;
             }
 

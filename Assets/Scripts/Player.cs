@@ -1,4 +1,3 @@
-
 using System.Collections;
 using UnityEngine;
 
@@ -50,7 +49,7 @@ public class Player : MonoBehaviour
     private bool isDashing;
     private bool canDash = true;
     private bool isOnPier = true;
-
+    private bool gameplayEnabled = false;
     private float lastClickTime = -1f;
     private float overweightDropTimer;
 
@@ -81,6 +80,9 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        if (!gameplayEnabled || Time.timeScale == 0f)
+            return;
+
         if (isOnPier)
         {
             HandlePierInput();
@@ -106,7 +108,7 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!isOnPier || body == null)
+        if (!gameplayEnabled || !isOnPier || body == null)
             return;
 
         if (!isMoving)
@@ -140,7 +142,7 @@ public class Player : MonoBehaviour
     }
     void LateUpdate()
     {
-        if (isOnPier)
+        if (!gameplayEnabled || isOnPier)
             return;
 
         float maxY = waterSurfaceY - surfaceMargin;
@@ -280,6 +282,28 @@ public class Player : MonoBehaviour
 
         if (harpoon != null)
             harpoon.SetAvailable(!value);
+    }
+    public void SetGameplayEnabled(bool value)
+    {
+        gameplayEnabled = value;
+
+        if (body == null)
+            body = GetComponent<Rigidbody2D>();
+
+        if (body != null)
+        {
+            body.simulated = value;
+
+            if (!value)
+            {
+                body.linearVelocity = Vector2.zero;
+                body.angularVelocity = 0f;
+            }
+        }
+
+        isMoving = false;
+        isDashing = false;
+        lastClickTime = -1f;
     }
 
     public bool IsOnPier => isOnPier;
@@ -433,6 +457,8 @@ public class Player : MonoBehaviour
 
         oxygen = maxoxygen;
         health = maxHealth;
+        if (GameManager.Instance != null)
+            GameManager.Instance.SaveGame();
     }
 
     private IEnumerator Dash()

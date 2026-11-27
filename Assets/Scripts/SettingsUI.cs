@@ -12,7 +12,11 @@ public class SettingsUI : MonoBehaviour
     public TMP_Text volumeValueText;
     public TMP_Dropdown screenModeDropdown;
     public GameObject settingsPanel;
+    [Header("Navigation")]
+    [SerializeField] private GameObject mainMenuPanel;
+    [SerializeField] private GameObject pausePanel;
 
+    private GameObject previousPanel;
     private const string SettingsFileName = "settings.json";
 
     [Serializable]
@@ -180,10 +184,27 @@ public class SettingsUI : MonoBehaviour
         settings.screenMode = Mathf.Clamp(settings.screenMode, 0, 1);
     }
 
-    public void OpenSettings()
+    public void OpenSettingsFromMainMenu()
     {
-        if (settingsPanel != null)
-            settingsPanel.SetActive(true);
+        OpenSettings(mainMenuPanel);
+    }
+
+    public void OpenSettingsFromPause()
+    {
+        OpenSettings(pausePanel);
+    }
+
+    private void OpenSettings(GameObject sourcePanel)
+    {
+        if (settingsPanel == null)
+            return;
+
+        previousPanel = sourcePanel;
+
+        if (previousPanel != null)
+            previousPanel.SetActive(false);
+
+        settingsPanel.SetActive(true);
     }
 
     public void CloseSettings()
@@ -192,6 +213,11 @@ public class SettingsUI : MonoBehaviour
 
         if (settingsPanel != null)
             settingsPanel.SetActive(false);
+
+        if (previousPanel != null)
+            previousPanel.SetActive(true);
+
+        previousPanel = null;
     }
 
     void OnApplicationQuit()
