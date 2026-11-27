@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
@@ -10,13 +9,30 @@ public class SettingsUI : MonoBehaviour
     [Header("UI References")]
     public Slider volumeSlider;
     public TMP_Text volumeValueText;
-    public TMP_Dropdown screenModeDropdown;
+
+    [Header("Screen Mode Switch")]
+    public Toggle screenModeToggle;
+    public Image screenModeTrack;
+    public RectTransform screenModeHandle;
+
+    [Header("Screen Switch Colors")]
+    [SerializeField]
+    private Color fullscreenColor =
+        new Color(0.2f, 0.55f, 0.95f, 1f);
+
+    [SerializeField]
+    private Color windowedColor =
+        new Color(0.55f, 0.55f, 0.55f, 1f);
+
+    [Header("Panels")]
     public GameObject settingsPanel;
+
     [Header("Navigation")]
     [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private GameObject pausePanel;
 
     private GameObject previousPanel;
+
     private const string SettingsFileName = "settings.json";
 
     [Serializable]
@@ -35,10 +51,11 @@ public class SettingsUI : MonoBehaviour
     void Start()
     {
         LoadSettings();
+
         AudioListener.volume = settings.volume;
 
         SetupVolumeSlider();
-        SetupScreenModeDropdown();
+        SetupScreenModeToggle();
 
         UpdateVolumeText();
         ApplyScreenMode(settings.screenMode);
@@ -83,51 +100,81 @@ public class SettingsUI : MonoBehaviour
         volumeValueText.text = percent + "%";
     }
 
-    void SetupScreenModeDropdown()
+    void SetupScreenModeToggle()
     {
-        if (screenModeDropdown == null)
+        if (screenModeToggle == null)
         {
-            Debug.LogWarning("SettingsUI: не назначен Screen Mode Dropdown!");
+            Debug.LogWarning("SettingsUI: не назначен Screen Mode Toggle!");
             return;
         }
 
-        screenModeDropdown.onValueChanged.RemoveListener(SetScreenMode);
+        screenModeToggle.onValueChanged.RemoveListener(SetScreenMode);
 
-        screenModeDropdown.ClearOptions();
+        screenModeToggle.transition = Selectable.Transition.None;
 
-        screenModeDropdown.AddOptions(
-            new List<string>
-            {
-                "Полноэкранный",
-                "Оконный"
-            }
-        );
+        if (screenModeTrack != null)
+            screenModeToggle.targetGraphic = screenModeTrack;
 
-        screenModeDropdown.value = settings.screenMode;
-        screenModeDropdown.RefreshShownValue();
+        screenModeToggle.graphic = null;
 
-        screenModeDropdown.onValueChanged.AddListener(SetScreenMode);
+        bool isFullscreen = settings.screenMode == 0;
+
+        screenModeToggle.isOn = isFullscreen;
+
+        screenModeToggle.onValueChanged.AddListener(SetScreenMode);
+
+        UpdateScreenModeSwitchVisual(isFullscreen);
     }
 
-    public void SetScreenMode(int mode)
+    public void SetScreenMode(bool isFullscreen)
     {
-        settings.screenMode = Mathf.Clamp(mode, 0, 1);
+        settings.screenMode = isFullscreen ? 0 : 1;
 
         ApplyScreenMode(settings.screenMode);
+
+        UpdateScreenModeSwitchVisual(isFullscreen);
 
         SaveSettings();
     }
 
     void ApplyScreenMode(int mode)
     {
-        if (mode == 0)
+        bool isFullscreen = mode == 0;
+
+        Screen.fullScreenMode = isFullscreen
+            ? FullScreenMode.FullScreenWindow
+            : FullScreenMode.Windowed;
+
+        Screen.fullScreen = isFullscreen;
+    }
+
+    void UpdateScreenModeSwitchVisual(bool isFullscreen)
+    {
+        if (screenModeTrack != null)
         {
-            Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
+            screenModeTrack.color = isFullscreen
+                ? fullscreenColor
+                : windowedColor;
         }
-        else
-        {
-            Screen.fullScreenMode = FullScreenMode.Windowed;
-        }
+
+        if (screenModeTrack == null || screenModeHandle == null)
+            return;
+
+        float trackWidth =
+            screenModeTrack.rectTransform.rect.width;
+
+        float handleWidth =
+            screenModeHandle.rect.width;
+
+        float offset = Mathf.Max(
+            0f,
+            trackWidth / 2f - handleWidth / 2f - 3f
+        );
+
+        screenModeHandle.anchoredPosition = new Vector2(
+            isFullscreen ? offset : -offset,
+            0f
+        );
     }
 
     void SaveSettings()
@@ -161,14 +208,7 @@ public class SettingsUI : MonoBehaviour
             SettingsData loadedSettings =
                 JsonUtility.FromJson<SettingsData>(json);
 
-            if (loadedSettings != null)
-            {
-                settings = loadedSettings;
-            }
-            else
-            {
-                settings = new SettingsData();
-            }
+            settings = loadedSettings ?? new SettingsData();
         }
         catch (Exception e)
         {

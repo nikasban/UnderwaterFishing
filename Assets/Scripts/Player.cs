@@ -49,7 +49,7 @@ public class Player : MonoBehaviour
     private bool isDashing;
     private bool canDash = true;
     private bool isOnPier = true;
-    private bool gameplayEnabled = false;
+    public bool gameplayEnabled = false;
     private float lastClickTime = -1f;
     private float overweightDropTimer;
 
@@ -307,7 +307,7 @@ public class Player : MonoBehaviour
     }
 
     public bool IsOnPier => isOnPier;
-
+    public bool IsGameplayEnabled => gameplayEnabled;
     public void ApplyUpgradeStats()
     {
         if (GameManager.Instance == null)
@@ -507,5 +507,46 @@ public class Player : MonoBehaviour
         );
 
         return position;
+    }
+    public void ApplyPoisonDamage(
+        float totalDamage,
+        float duration,
+        float tickInterval)
+    {
+        StartCoroutine(PoisonDamageCoroutine(
+            totalDamage,
+            duration,
+            tickInterval
+        ));
+    }
+
+    private IEnumerator PoisonDamageCoroutine(
+        float totalDamage,
+        float duration,
+        float tickInterval)
+    {
+        duration = Mathf.Max(0.01f, duration);
+        tickInterval = Mathf.Max(0.01f, tickInterval);
+
+        float elapsed = 0f;
+
+        while (elapsed < duration && !isOnPier)
+        {
+            float currentTick = Mathf.Min(
+                tickInterval,
+                duration - elapsed
+            );
+
+            yield return new WaitForSeconds(currentTick);
+
+            if (isOnPier)
+                yield break;
+
+            float damage = totalDamage * currentTick / duration;
+
+            TakeDamage(damage);
+
+            elapsed += currentTick;
+        }
     }
 }

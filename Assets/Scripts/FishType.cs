@@ -8,6 +8,13 @@ public enum FishBehavior
     Aggressive
 }
 
+public enum FishSpecies
+{
+    Normal,
+    Pufferfish,
+    Swordfish
+}
+
 [CreateAssetMenu(fileName = "FishType", menuName = "Game/Fish Type")]
 public class FishType : ScriptableObject
 {
@@ -33,7 +40,13 @@ public class FishType : ScriptableObject
     public float fleeSpeed = 4f;
     public float chaseSpeed = 3f;
 
-    [Header("Aggression")]
-    public bool lethal = false;
+    [Header("Swordfish")]
     public float damage = 15f;
+
+    [Header("Pufferfish")]
+    public float poisonDamage = 20f;
+    public float poisonDuration = 4f;
+    public float poisonTickInterval = 0.5f;
+    [Header("Species")]
+    public FishSpecies species = FishSpecies.Normal;
 }

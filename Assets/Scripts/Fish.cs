@@ -20,7 +20,9 @@ public class Fish : MonoBehaviour
     private Vector2 timidEscapeDirection;
     [Header("Behavior")]
     public float reactionHysteresis = 0.5f;
-
+    [Header("Sprite Direction")]
+    [SerializeField] private bool spriteFacesRight = true;
+    private SpriteRenderer[] fishSprites;
     private Transform harp;
     private Transform player;
 
@@ -45,7 +47,7 @@ public class Fish : MonoBehaviour
     void Awake()
     {
         body = GetComponent<Rigidbody2D>();
-
+        fishSprites = GetComponentsInChildren<SpriteRenderer>(true);
         if (fishType != null)
         {
             float averageWeight = Mathf.Max(0.01f, fishType.weight);
@@ -133,6 +135,7 @@ public class Fish : MonoBehaviour
         }
 
         MoveFish(nextPosition);
+        UpdateSpriteDirection();
 
         if (CanBeHarpoonCaught() &&
             harp != null &&
@@ -146,21 +149,10 @@ public class Fish : MonoBehaviour
         }
 
         if (player != null &&
-            Vector2.Distance(player.position, nextPosition) < 0.5f)
+    Vector2.Distance(player.position, nextPosition) < 0.5f)
         {
-            if (fishType.behavior == FishBehavior.Aggressive)
-            {
-                if (fishType.lethal)
-                    KillPlayer();
-                else
-                    DamagePlayer(fishType.damage);
-
-                Destroy(gameObject);
-                return;
-            }
-
-            if (GameManager.Instance.AddFish(fishType, actualWeight))
-                Destroy(gameObject);
+            HandlePlayerContact();
+            return;
         }
     }
 
@@ -207,16 +199,17 @@ public class Fish : MonoBehaviour
         }
 
         if (player != null &&
-            Vector2.Distance(player.position, currentPosition) < 0.5f)
+    Vector2.Distance(player.position, currentPosition) < 0.5f)
         {
-            GameManager.Instance.AddFish(fishType, actualWeight);
-            Destroy(gameObject);
+            HandlePlayerContact();
         }
     }
 
     bool CanBeHarpoonCaught()
     {
-        return fishType.behavior != FishBehavior.Aggressive;
+        return fishType.species == FishSpecies.Pufferfish ||
+               fishType.species == FishSpecies.Swordfish ||
+               fishType.behavior != FishBehavior.Aggressive;
     }
 
     void PickWanderDir()
@@ -432,24 +425,57 @@ public class Fish : MonoBehaviour
             timidEscapeDirection = newDirection;
         }
     }
-    void KillPlayer()
-    {
-        if (playerScript == null)
-        {
-            Debug.LogError(
-                "Fish: не найден Player для смертельной атаки!"
-            );
-            return;
-        }
-        float damage = playerScript.health /
-            Mathf.Max(0.0001f, 1f - playerScript.armorReduction) + 1f;
-
-        playerScript.TakeDamage(damage);
-    }
 
     void DamagePlayer(float damage)
     {
         if (playerScript != null)
             playerScript.TakeDamage(damage);
+    }
+    void UpdateSpriteDirection()
+    {
+        if (fishSprites == null || Mathf.Abs(velocity.x) < 0.01f)
+            return;
+
+        bool movingLeft = velocity.x < 0f;
+
+        foreach (SpriteRenderer sr in fishSprites)
+        {
+            if (sr == null)
+                continue;
+
+            sr.flipX = spriteFacesRight
+                ? movingLeft
+                : !movingLeft;
+        }
+    }
+    void HandlePlayerContact()
+    {
+        if (fishType.species == FishSpecies.Pufferfish)
+        {
+            if (playerScript != null)
+            {
+                playerScript.ApplyPoisonDamage(
+                    fishType.poisonDamage,
+                    fishType.poisonDuration,
+                    fishType.poisonTickInterval
+                );
+            }
+
+            Destroy(gameObject);
+            return;
+        }
+
+        if (fishType.species == FishSpecies.Swordfish ||
+            fishType.behavior == FishBehavior.Aggressive)
+        {
+            DamagePlayer(fishType.damage);
+            Destroy(gameObject);
+            return;
+        }
+
+        if (GameManager.Instance.AddFish(fishType, actualWeight))
+        {
+            Destroy(gameObject);
+        }
     }
 }
