@@ -3547,9 +3547,11 @@ MonoBehaviour:
   player: {fileID: 327182231}
   offset: {x: 0, y: 0, z: -10}
   targetCamera: {fileID: 519420031}
-  depthViewReductionPerUnit: 0.05
+  depthViewReductionPerUnit: 0.08
   minOrthographicSize: 2
+  followSmoothTime: 0.2
   viewSizeSmooth: 4
+  teleportSnapDistance: 20
 --- !u!1 &543489337
 GameObject:
   m_ObjectHideFlags: 0
@@ -6203,7 +6205,7 @@ MonoBehaviour:
   maxUpgradeLevel: 5
   upgradeCostMultiplier: 1.6
   upgradeBaseCosts: 6400000078000000640000006400000082000000i
-  upgradeLevels: 0000000000000000640000000000000000000000i
+  upgradeLevels: 0000000000000000000000000000000000000000i
   harpoonRangePerLevel: 2
   viewSizePerLevel: 1.5
   oxygenPerLevel: 12
@@ -6302,8 +6304,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 28
+  m_fontSizeBase: 28
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

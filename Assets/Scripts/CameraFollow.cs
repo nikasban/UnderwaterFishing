@@ -17,10 +17,20 @@ public class CameraFollow : MonoBehaviour
     public float minOrthographicSize = 2f;
 
     [Header("Smoothing")]
+    [Tooltip("Плавность движения камеры. Чем больше значение, тем медленнее камера догоняет игрока.")]
+    [Min(0.01f)]
+    public float followSmoothTime = 0.15f;
+
+    [Tooltip("Плавность изменения размера обзора")]
     public float viewSizeSmooth = 4f;
+
+    [Tooltip("Расстояние, при котором камера мгновенно перемещается к игроку")]
+    [Min(1f)]
+    public float teleportSnapDistance = 20f;
 
     private float baseOrthographicSize;
     private Player playerScript;
+    private Vector3 moveVelocity;
 
     void Start()
     {
@@ -56,6 +66,7 @@ public class CameraFollow : MonoBehaviour
 
         if (targetCamera != null && targetCamera.orthographic)
             baseOrthographicSize = targetCamera.orthographicSize;
+        transform.position = player.position + offset;
     }
 
     void LateUpdate()
@@ -63,7 +74,26 @@ public class CameraFollow : MonoBehaviour
         if (player == null)
             return;
 
-        transform.position = player.position + offset;
+        Vector3 targetPosition = player.position + offset;
+        float distance = Vector3.Distance(
+            transform.position,
+            targetPosition
+        );
+
+        if (distance > teleportSnapDistance)
+        {
+            transform.position = targetPosition;
+            moveVelocity = Vector3.zero;
+        }
+        else
+        {
+            transform.position = Vector3.SmoothDamp(
+                transform.position,
+                targetPosition,
+                ref moveVelocity,
+                followSmoothTime
+            );
+        }
 
         UpdateViewRange();
     }
