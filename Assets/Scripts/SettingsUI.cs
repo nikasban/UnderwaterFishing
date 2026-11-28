@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -193,11 +194,13 @@ public class SettingsUI : MonoBehaviour
         }
     }
 
+
     void LoadSettings()
     {
         if (!File.Exists(SettingsFilePath))
         {
             settings = new SettingsData();
+            SaveSettings();
             return;
         }
 
@@ -205,24 +208,65 @@ public class SettingsUI : MonoBehaviour
         {
             string json = File.ReadAllText(SettingsFilePath);
 
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                ResetSettings("Файл настроек пустой.");
+                return;
+            }
+            bool validVolumeType = Regex.IsMatch(
+                json,
+                "\"volume\"\\s*:\\s*-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?\\s*[,}]"
+            );
+
+            bool validScreenModeType = Regex.IsMatch(
+                json,
+                "\"screenMode\"\\s*:\\s*-?\\d+\\s*[,}]"
+            );
+
+            if (!validVolumeType || !validScreenModeType)
+            {
+                ResetSettings("Неправильные типы данных.");
+                return;
+            }
+
             SettingsData loadedSettings =
                 JsonUtility.FromJson<SettingsData>(json);
 
-            settings = loadedSettings ?? new SettingsData();
+            if (loadedSettings == null ||
+                float.IsNaN(loadedSettings.volume) ||
+                float.IsInfinity(loadedSettings.volume) ||
+                loadedSettings.volume < 0f ||
+                loadedSettings.volume > 1f ||
+                loadedSettings.screenMode < 0 ||
+                loadedSettings.screenMode > 1)
+            {
+                ResetSettings("Недопустимые значения настроек.");
+                return;
+            }
+
+            settings = loadedSettings;
+
+            Debug.Log("SettingsUI: настройки успешно загружены.");
         }
         catch (Exception e)
         {
-            Debug.LogWarning(
-                "Не удалось загрузить настройки. Используются значения по умолчанию. " +
-                e.Message
-            );
-
-            settings = new SettingsData();
+            ResetSettings("Ошибка чтения JSON: " + e.Message);
         }
-
-        settings.volume = Mathf.Clamp01(settings.volume);
-        settings.screenMode = Mathf.Clamp(settings.screenMode, 0, 1);
     }
+
+    private void ResetSettings(string reason)
+    {
+        Debug.LogWarning(
+            "SettingsUI: настройки сброшены. Причина: " + reason
+        );
+
+        settings = new SettingsData();
+
+        SaveSettings();
+
+        Debug.Log("SettingsUI: восстановлены настройки по умолчанию.");
+    }
+
 
     public void OpenSettingsFromMainMenu()
     {

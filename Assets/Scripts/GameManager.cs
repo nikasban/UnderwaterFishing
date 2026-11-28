@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 public enum UpgradeType
@@ -57,6 +58,9 @@ public class GameManager : MonoBehaviour
 
     private string SaveFilePath =>
         Path.Combine(Application.persistentDataPath, SaveFileName);
+    private const int MaxSavedCoins = 1000000000;
+    private const int MaxSavedFish = 500;
+    private const int MaxSavedFishPrice = 1000000000;
 
     [Serializable]
     private class SaveData
@@ -454,11 +458,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
     void LoadGame()
     {
         if (!File.Exists(SaveFilePath))
         {
-            Debug.Log("Сохранение не найдено. Начинаем новую игру.");
+            ResetGameData("Файл сохранения отсутствует.");
             return;
         }
 
@@ -466,79 +471,228 @@ public class GameManager : MonoBehaviour
         {
             string json = File.ReadAllText(SaveFilePath);
 
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                ResetGameData("Файл сохранения пустой.");
+                return;
+            }
+
+            if (!ValidateSaveJsonTypes(json))
+            {
+                ResetGameData("Неправильные типы или структура JSON.");
+                return;
+            }
+
             SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-            if (data == null)
-                return;
-
-            coins = Mathf.Max(0, data.coins);
-
-            if (data.upgradeLevels != null)
+            if (!TryValidateSaveData(
+                data,
+                out List<FishType> loadedFish,
+                out List<float> loadedWeights,
+                out List<int> loadedPrices))
             {
-                for (int i = 0;
-                     i < Mathf.Min(data.upgradeLevels.Length, upgradeLevels.Length);
-                     i++)
-                {
-                    upgradeLevels[i] = Mathf.Clamp(
-                        data.upgradeLevels[i],
-                        0,
-                        maxUpgradeLevel
-                    );
-                }
+                ResetGameData("Данные сохранения не прошли проверку.");
+                return;
             }
+
+            coins = data.coins;
+            upgradeLevels = (int[])data.upgradeLevels.Clone();
 
             inventory.Clear();
             inventoryWeights.Clear();
             inventorySellPrices.Clear();
 
-            if (data.fishNames != null &&
-                data.inventoryWeights != null &&
-                data.inventorySellPrices != null)
-            {
-                int count = Mathf.Min(
-                    data.fishNames.Count,
-                    Mathf.Min(
-                        data.inventoryWeights.Count,
-                        data.inventorySellPrices.Count
-                    )
-                );
-
-                for (int i = 0; i < count; i++)
-                {
-                    FishType fish = fishCatalog.Find(
-                        f => f != null && f.name == data.fishNames[i]
-                    );
-
-                    if (fish == null)
-                    {
-                        Debug.LogWarning(
-                            "Не удалось восстановить рыбу: " +
-                            data.fishNames[i]
-                        );
-
-                        continue;
-                    }
-
-                    inventory.Add(fish);
-
-                    inventoryWeights.Add(
-                        Mathf.Max(0f, data.inventoryWeights[i])
-                    );
-
-                    inventorySellPrices.Add(
-                        Mathf.Max(0, data.inventorySellPrices[i])
-                    );
-                }
-            }
+            inventory.AddRange(loadedFish);
+            inventoryWeights.AddRange(loadedWeights);
+            inventorySellPrices.AddRange(loadedPrices);
 
             InventoryVersion++;
 
-            Debug.Log("Сохранение успешно загружено!");
+            Debug.Log("GameManager: сохранение успешно загружено.");
         }
         catch (Exception e)
         {
-            Debug.LogError("Ошибка загрузки сохранения: " + e.Message);
+            ResetGameData("Ошибка чтения JSON: " + e.Message);
         }
+    }
+
+    private bool ValidateSaveJsonTypes(string json)
+    {
+        // Монеты должны быть целым числом.
+        if (!Regex.IsMatch(
+            json,
+            "\"coins\"\\s*:\\s*-?\\d+\\s*[,}]"))
+            return false;
+
+        // Все обязательные поля должны присутствовать.
+        string[] requiredFields =
+        {
+        "upgradeLevels",
+        "fishNames",
+        "inventoryWeights",
+        "inventorySellPrices"
+    };
+
+        foreach (string field in requiredFields)
+        {
+            if (!Regex.IsMatch(
+                json,
+                "\"" + field + "\"\\s*:\\s*\\["))
+                return false;
+        }
+
+        // Проверяем типы элементов числовых массивов.
+        if (!ValidateNumericArray(json, "upgradeLevels", true))
+            return false;
+
+        if (!ValidateNumericArray(json, "inventoryWeights", false))
+            return false;
+
+        if (!ValidateNumericArray(json, "inventorySellPrices", true))
+            return false;
+
+        return true;
+    }
+
+    private bool ValidateNumericArray(
+        string json,
+        string fieldName,
+        bool integersOnly)
+    {
+        Match match = Regex.Match(
+            json,
+            "\"" + fieldName + "\"\\s*:\\s*\\[([^\\]]*)\\]"
+        );
+
+        if (!match.Success)
+            return false;
+
+        string content = match.Groups[1].Value.Trim();
+
+        if (content.Length == 0)
+            return true;
+
+        string[] values = content.Split(',');
+
+        foreach (string rawValue in values)
+        {
+            string value = rawValue.Trim();
+
+            string pattern = integersOnly
+                ? @"^-?\d+$"
+                : @"^-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$";
+
+            if (!Regex.IsMatch(value, pattern))
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool TryValidateSaveData(
+        SaveData data,
+        out List<FishType> loadedFish,
+        out List<float> loadedWeights,
+        out List<int> loadedPrices)
+    {
+        loadedFish = new List<FishType>();
+        loadedWeights = new List<float>();
+        loadedPrices = new List<int>();
+
+        if (data == null)
+            return false;
+
+        if (data.coins < 0 || data.coins > MaxSavedCoins)
+            return false;
+
+        // Должно быть ровно пять уровней улучшений.
+        if (data.upgradeLevels == null ||
+            data.upgradeLevels.Length != 5)
+            return false;
+
+        foreach (int level in data.upgradeLevels)
+        {
+            if (level < 0 || level > maxUpgradeLevel)
+                return false;
+        }
+
+        if (data.fishNames == null ||
+            data.inventoryWeights == null ||
+            data.inventorySellPrices == null)
+            return false;
+
+        int count = data.fishNames.Count;
+
+        if (count > MaxSavedFish ||
+            data.inventoryWeights.Count != count ||
+            data.inventorySellPrices.Count != count)
+            return false;
+
+        if (count > 0 && fishCatalog == null)
+            return false;
+
+        for (int i = 0; i < count; i++)
+        {
+            string fishName = data.fishNames[i];
+
+            if (string.IsNullOrWhiteSpace(fishName))
+                return false;
+
+            FishType fish = fishCatalog.Find(
+                f => f != null && f.name == fishName
+            );
+
+            if (fish == null)
+                return false;
+
+            float weight = data.inventoryWeights[i];
+            int price = data.inventorySellPrices[i];
+
+            if (float.IsNaN(weight) ||
+                float.IsInfinity(weight) ||
+                weight < 0f ||
+                weight > 1000f)
+                return false;
+
+            if (price < 0 || price > MaxSavedFishPrice)
+                return false;
+
+            loadedFish.Add(fish);
+            loadedWeights.Add(weight);
+            loadedPrices.Add(price);
+        }
+
+        return true;
+    }
+    private void ResetGameData(string reason)
+    {
+        Debug.LogWarning(
+            "GameManager: сохранение сброшено. Причина: " + reason
+        );
+
+        coins = 0;
+        upgradeLevels = new int[5];
+
+        if (inventory == null)
+            inventory = new List<FishType>();
+        else
+            inventory.Clear();
+
+        if (inventoryWeights == null)
+            inventoryWeights = new List<float>();
+        else
+            inventoryWeights.Clear();
+
+        if (inventorySellPrices == null)
+            inventorySellPrices = new List<int>();
+        else
+            inventorySellPrices.Clear();
+
+        InventoryVersion++;
+
+        SaveGame();
+
+        Debug.Log("GameManager: создано новое базовое сохранение.");
     }
     public int InventoryCount => inventory.Count;
 }
