@@ -16,10 +16,13 @@ MonoBehaviour:
   weight: 4
   rarity: 5
   sellPrice: 50
-  sprite: {fileID: -1395577165642710634, guid: c0452d9fb5bde4e49baf2d2cab98e885, type: 3}
+  sprite: {fileID: -4289903725898482964, guid: 3998c5f9b11749b4b8f409f0c2603168, type: 3}
   behavior: 2
   detectRange: 5
   fleeSpeed: 6
   chaseSpeed: 3
-  lethal: 0
   damage: 15
+  poisonDamage: 20
+  poisonDuration: 4
+  poisonTickInterval: 0.5
+  species: 0

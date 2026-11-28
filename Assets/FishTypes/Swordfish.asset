@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aad3e3e908e6cf84ea5596eefeb15c51, type: 3}
   m_Name: Swordfish
   m_EditorClassIdentifier: Assembly-CSharp::FishType
-  fishName: "\u0447\u0435 \u0442\u043E \u0447\u0435 \u0442\u043E"
+  fishName: "\u0420\u044B\u0431\u0430-\u043C\u0435\u0447"
   weight: 0.5
   rarity: 1
   sellPrice: 10

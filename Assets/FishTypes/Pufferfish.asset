@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aad3e3e908e6cf84ea5596eefeb15c51, type: 3}
   m_Name: Pufferfish
   m_EditorClassIdentifier: Assembly-CSharp::FishType
-  fishName: "\u0447\u0435 \u0442\u043E \u0447\u0435 \u0442\u043E"
+  fishName: "\u0418\u0433\u043B\u043E\u0431\u0440\u044E\u0445"
   weight: 0.5
   rarity: 1
   sellPrice: 10
