@@ -17,3 +17,6 @@
 *.tmp
 *.pidb
 *.booproj
+
+**/game_save.json
+**/settings.json

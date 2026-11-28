@@ -5247,7 +5247,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &877858323
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6538,6 +6538,7 @@ GameObject:
   - component: {fileID: 1103827443}
   - component: {fileID: 1103827442}
   - component: {fileID: 1103827441}
+  - component: {fileID: 1103827444}
   m_Layer: 5
   m_Name: SettingsButton
   m_TagString: Untagged
@@ -6562,7 +6563,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -10.255005, y: -241.566}
+  m_AnchoredPosition: {x: -10.255005, y: -257}
   m_SizeDelta: {x: 473.697, y: 86.607}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1103827441
@@ -6659,6 +6660,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1103827439}
   m_CullTransparentMesh: 1
+--- !u!114 &1103827444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1103827439}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8590821d3e416364ebabdaae0e916a02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResponsiveButtonScale
+  minScale: 0.75
+  maxScale: 1.35
 --- !u!1 &1105766657
 GameObject:
   m_ObjectHideFlags: 0
@@ -8043,6 +8058,7 @@ GameObject:
   - component: {fileID: 1373753240}
   - component: {fileID: 1373753239}
   - component: {fileID: 1373753238}
+  - component: {fileID: 1373753241}
   m_Layer: 5
   m_Name: BackButton
   m_TagString: Untagged
@@ -8164,6 +8180,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1373753236}
   m_CullTransparentMesh: 1
+--- !u!114 &1373753241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1373753236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8590821d3e416364ebabdaae0e916a02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResponsiveButtonScale
+  minScale: 0.75
+  maxScale: 1.35
 --- !u!1 &1381857052
 GameObject:
   m_ObjectHideFlags: 0
@@ -9291,6 +9321,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1645111124}
   - component: {fileID: 1645111125}
+  - component: {fileID: 1645111126}
   m_Layer: 5
   m_Name: ScreenModeToggle
   m_TagString: Untagged
@@ -9367,6 +9398,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 1
+--- !u!114 &1645111126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1645111123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8590821d3e416364ebabdaae0e916a02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResponsiveButtonScale
+  minScale: 0.75
+  maxScale: 1.35
 --- !u!1 &1664753330
 GameObject:
   m_ObjectHideFlags: 0
@@ -9379,6 +9424,7 @@ GameObject:
   - component: {fileID: 1664753334}
   - component: {fileID: 1664753333}
   - component: {fileID: 1664753332}
+  - component: {fileID: 1664753335}
   m_Layer: 5
   m_Name: PlayButton
   m_TagString: Untagged
@@ -9403,7 +9449,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -10.614, y: -127.717}
+  m_AnchoredPosition: {x: -10.614, y: -133}
   m_SizeDelta: {x: 517.001, y: 90.565}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1664753332
@@ -9500,6 +9546,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1664753330}
   m_CullTransparentMesh: 1
+--- !u!114 &1664753335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1664753330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8590821d3e416364ebabdaae0e916a02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResponsiveButtonScale
+  minScale: 0.75
+  maxScale: 1.35
 --- !u!1 &1761226166
 GameObject:
   m_ObjectHideFlags: 0
@@ -10408,6 +10468,7 @@ GameObject:
   - component: {fileID: 1939149753}
   - component: {fileID: 1939149752}
   - component: {fileID: 1939149751}
+  - component: {fileID: 1939149754}
   m_Layer: 5
   m_Name: ExitButton
   m_TagString: Untagged
@@ -10432,7 +10493,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -10.256, y: -349.876}
+  m_AnchoredPosition: {x: -10.256, y: -365}
   m_SizeDelta: {x: 473.7, y: 84.249}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1939149751
@@ -10529,6 +10590,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1939149749}
   m_CullTransparentMesh: 1
+--- !u!114 &1939149754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1939149749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8590821d3e416364ebabdaae0e916a02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResponsiveButtonScale
+  minScale: 0.75
+  maxScale: 1.35
 --- !u!1 &1941763531
 GameObject:
   m_ObjectHideFlags: 0
@@ -11356,6 +11431,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2069551262}
   - component: {fileID: 2069551263}
+  - component: {fileID: 2069551264}
   m_Layer: 5
   m_Name: VolumeSlider
   m_TagString: Untagged
@@ -11448,6 +11524,20 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &2069551264
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2069551261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8590821d3e416364ebabdaae0e916a02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResponsiveButtonScale
+  minScale: 0.75
+  maxScale: 1.35
 --- !u!1 &2072738606
 GameObject:
   m_ObjectHideFlags: 0
